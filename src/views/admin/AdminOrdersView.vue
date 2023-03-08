@@ -1,53 +1,232 @@
 <template>
   <div class="container">
-    <div class="calendar">
+    <div class="calendar text-center">
       <div class="month">
-        <button class="btn btn-outline-primary prev" @click="changeMonth(-1)">
+        <button class="btn btn-outline-primary prev" @click="adjustMonth(-1)">
           <i class="fas fa-angle-left"></i>
         </button>
         <div class="date">
-          <h1 class="text-center">{{ CalendarMonth }}</h1>
-          <h2 class="text-center">{{ CalendarYear }}</h2>
+          <h1>{{ calendar.year }}</h1>
+          <h2>{{ months[calendar.month] }}</h2>
         </div>
-        <div class="btn btn-outline-primary next" @click="changeMonth(1)">
+        <div class="btn btn-outline-primary next" @click="adjustMonth(1)">
           <i class="fas fa-angle-right"></i>
         </div>
       </div>
-      <div class="weekdays">
-        <div class="">日</div>
-        <div class="">一</div>
-        <div class="">二</div>
-        <div class="">三</div>
-        <div class="">四</div>
-        <div class="">五</div>
-        <div class="">六</div>
+      <div class="weekDay">
+        <div>日</div>
+        <div>一</div>
+        <div>二</div>
+        <div>三</div>
+        <div>四</div>
+        <div>五</div>
+        <div>六</div>
       </div>
-      <div class="days">
-        <!-- 上月 -->
+      <div class="week" v-for="i in 5" :key="'aaa' + i">
         <div
-          class="prev-date"
-          v-for="(x, index) in lastDayIndex"
-          :key="'last' + index"
-        >
-          <p>{{ prevLastDay - x + 1 }}</p>
-        </div>
-        <!-- 本月 -->
-        <div
+          class="day text-start ps-2"
+          v-for="j in 7"
+          :key="'aaa' + j"
+          :data-date="calendarMonth[(i - 1) * 7 + j - 1].date"
+          :data-timestamp="
+            new Date(
+              calendarMonth[(i - 1) * 7 + j - 1].year,
+              calendarMonth[(i - 1) * 7 + j - 1].month,
+              calendarMonth[(i - 1) * 7 + j - 1].date
+            ).valueOf()
+          "
           :class="{
-            'bg-light':
-              i === new Date().getDate() &&
-              this.date.getMonth() === new Date().getMonth() &&
-              this.date.getYear() === new Date().getYear()
+            today:
+              calendarMonth[(i - 1) * 7 + j - 1].year === today.year &&
+              calendarMonth[(i - 1) * 7 + j - 1].month === today.month &&
+              calendarMonth[(i - 1) * 7 + j - 1].date === today.date,
+            other: calendarMonth[(i - 1) * 7 + j - 1].month !== calendar.month
           }"
-          :data-date="Math.floor(new Date(this.date).setDate(i) / 1000) * 1000"
-          v-for="i in lastDate"
-          :key="'day' + i"
         >
-          <p>{{ i }}</p>
-        </div>
-        <!-- 下月 -->
-        <div class="next-date" v-for="j in nextDays" :key="'j' + j">
-          <p>{{ j }}</p>
+          <p>{{ calendarMonth[(i - 1) * 7 + j - 1].date }}</p>
+          <div
+            v-if="
+              new Date(
+                calendarMonth[(i - 1) * 7 + j - 1].year,
+                calendarMonth[(i - 1) * 7 + j - 1].month,
+                calendarMonth[(i - 1) * 7 + j - 1].date
+              ) > Date.now() &&
+              calendarMonth[(i - 1) * 7 + j - 1].month == calendar.month &&
+              new Date(
+                calendarMonth[(i - 1) * 7 + j - 1].year,
+                calendarMonth[(i - 1) * 7 + j - 1].month,
+                calendarMonth[(i - 1) * 7 + j - 1].date
+              ).getDay() === 6
+            "
+          >
+            <button
+              @click="booking('??')"
+              v-if="
+                bookedTime.indexOf(
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).setHours(10, 0, 0, 0)
+                ) == -1
+              "
+              type="button"
+              :data-session="
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).setHours(10, 0, 0, 0)
+              "
+              class="btn btn-sm btn-outline-primary"
+            >
+              10:00
+            </button>
+            <button
+              @click="booking('??')"
+              v-if="
+                bookedTime.indexOf(
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).setHours(14, 0, 0, 0)
+                ) == -1
+              "
+              type="button"
+              :data-session="
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).setHours(14, 0, 0, 0)
+              "
+              class="btn btn-sm btn-outline-primary"
+            >
+              14:00
+            </button>
+            <button
+              @click="booking('??')"
+              v-if="
+                bookedTime.indexOf(
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).setHours(16, 0, 0, 0)
+                ) == -1
+              "
+              type="button"
+              :data-session="
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).setHours(16, 0, 0, 0)
+              "
+              class="btn btn-sm btn-outline-primary"
+            >
+              16:00
+            </button>
+            <button
+              @click="booking('??')"
+              v-if="
+                bookedTime.indexOf(
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).setHours(20, 0, 0, 0)
+                ) == -1
+              "
+              type="button"
+              :data-session="
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).setHours(20, 0, 0, 0)
+              "
+              class="btn btn-sm btn-outline-primary"
+            >
+              20:00
+            </button>
+          </div>
+          <div
+            v-else-if="
+              new Date(
+                calendarMonth[(i - 1) * 7 + j - 1].year,
+                calendarMonth[(i - 1) * 7 + j - 1].month,
+                calendarMonth[(i - 1) * 7 + j - 1].date
+              ) > Date.now() &&
+              calendarMonth[(i - 1) * 7 + j - 1].month == calendar.month &&
+              (new Date(
+                calendarMonth[(i - 1) * 7 + j - 1].year,
+                calendarMonth[(i - 1) * 7 + j - 1].month,
+                calendarMonth[(i - 1) * 7 + j - 1].date
+              ).getDay() === 1 ||
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).getDay() === 2 ||
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).getDay() === 4 ||
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).getDay() === 5)
+            "
+          >
+            <button
+              @click="booking('??')"
+              v-if="
+                bookedTime.indexOf(
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).setHours(20, 0, 0, 0)
+                ) == -1
+              "
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              :data-session="
+                new Date(
+                  calendarMonth[(i - 1) * 7 + j - 1].year,
+                  calendarMonth[(i - 1) * 7 + j - 1].month,
+                  calendarMonth[(i - 1) * 7 + j - 1].date
+                ).setHours(20, 0, 0, 0)
+              "
+            >
+              20:00
+            </button>
+          </div>
+          <template v-for="(it, timestamp) in formatOrder" :key="timestamp">
+            <template
+              v-for="(item, index) in formatOrder[timestamp]"
+              :key="'serve' + index"
+            >
+              <p
+                class="booked fs-6"
+                @click="selectTempOrder(item)"
+                v-if="
+                  timestamp ==
+                  new Date(
+                    calendarMonth[(i - 1) * 7 + j - 1].year,
+                    calendarMonth[(i - 1) * 7 + j - 1].month,
+                    calendarMonth[(i - 1) * 7 + j - 1].date
+                  ).valueOf()
+                "
+              >
+                {{ item.time }} {{ item.user.name }} {{ item.product.title }}
+              </p>
+            </template>
+          </template>
         </div>
       </div>
     </div>
@@ -61,7 +240,6 @@
   >
     新增預約/關閉時段
   </button>
-
   <!-- Modal -->
   <div
     class="modal fade"
@@ -175,30 +353,28 @@
     </div>
   </div>
 </template>
-
 <script>
 // import { RouterLink } from 'vue-router'
 
 const { VITE_URL, VITE_PATH } = import.meta.env
-const months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December'
-]
 export default {
   data() {
     return {
+      months: [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+      ],
       orders: [],
-      date: new Date(),
       tempOrder: {
         name: 'name',
         phone: '0987654321',
@@ -209,6 +385,18 @@ export default {
           title: '',
           category: ''
         }
+      },
+      today: {
+        year: 0,
+        month: 0,
+        date: 0,
+        day: 0
+      },
+      calendar: {
+        year: 0,
+        month: 0,
+        date: 0,
+        day: 0
       }
     }
   },
@@ -216,61 +404,6 @@ export default {
     // RouterLink
   },
   methods: {
-    renderCalendar() {
-      this.date.setDate(1)
-      this.date.setHours('00', '00', '00')
-      // const monthDays = document.querySelector('.days')
-      // const lastDate = new Date(
-      //   this.date.getFullYear(),
-      //   this.date.getMonth() + 1,
-      //   0
-      // ).getDate()
-      // const prevLastDay = new Date(
-      //   this.date.getFullYear(),
-      //   this.date.getMonth(),
-      //   0
-      // ).getDate()
-      // const firstDayIndex = this.date.getDay()
-      // const lastDayIndex = new Date(
-      //   this.date.getFullYear(),
-      //   this.date.getMonth() + 1,
-      //   0
-      // ).getDay()
-      // const nextDays = 7 - lastDayIndex - 1
-
-      // let days = ''
-      // 上月
-      // for (let x = firstDayIndex; x > 0; x--) {
-      //   days += `<div class="prev-date"><p>${prevLastDay - x + 1}</p></div>`
-      // }
-      // 本月
-      // for (let i = 1; i <= lastDate; i++) {
-      //   if (
-      //     i === new Date().getDate() &&
-      //     this.date.getMonth() === new Date().getMonth() &&
-      //     this.date.getYear() === new Date().getYear()
-      //   ) {
-      //     days += `<div class="bg-light" data-date="${
-      //       Math.floor(new Date(this.date).setDate(i) / 1000) * 1000
-      //     }"><p>${i}</p></div>`
-      //   } else {
-      //     days += `<div data-date="${
-      //       Math.floor(new Date(this.date).setDate(i) / 1000) * 1000
-      //     }"><p>${i}</p></div>`
-      //   }
-      // }
-      // 下月
-      // for (let j = 1; j <= nextDays; j++) {
-      //   days += `<div class="next-date"><p>${j}</p></div>`
-      // }
-
-      // monthDays.innerHTML = days
-    },
-    changeMonth(direction) {
-      this.date.setMonth(this.date.getMonth() + direction)
-      this.renderCalendar()
-      this.renderSession()
-    },
     getBooked() {
       this.$http
         .get(`${VITE_URL}/api/${VITE_PATH}/admin/orders`)
@@ -287,115 +420,99 @@ export default {
           console.log(err)
         })
     },
-    renderSession() {
-      const sessionDays = document.querySelectorAll('[data-date]')
-      let now = new Date()
-      sessionDays.forEach(function (item, index) {
-        let day = new Date(Number(item.dataset.date)).getDay()
-        if (
-          item.dataset.date > now &&
-          item.dataset.date < new Date(now).setMonth(now.getMonth() + 2)
-        ) {
-          if (day == 6) {
-            sessionDays[index].innerHTML = `
-              <p>${index + 1}</p>
-              <button class="btn btn-sm btn-outline-primary" data-session="${new Date(
-                Number(item.dataset.date)
-              ).setHours(10, 0, 0, 0)}" onclick="selectTempOrder">10:00</button>
-              <button class="btn btn-sm btn-outline-primary" data-session="${new Date(
-                Number(item.dataset.date)
-              ).setHours(14, 0, 0, 0)}" onclick="selectTempOrder">14:00</button>
-              <button class="btn btn-sm btn-outline-primary" data-session="${new Date(
-                Number(item.dataset.date)
-              ).setHours(16, 0, 0, 0)}" onclick="selectTempOrder">16:00</button>
-              <button class="btn btn-sm btn-outline-primary" data-session="${new Date(
-                Number(item.dataset.date)
-              ).setHours(20, 0, 0, 0)}" onclick="selectTempOrder">20:00</button>
-            `
-          } else if (day == 1 || day == 2 || day == 4 || day == 5) {
-            sessionDays[index].innerHTML = `
-              <p>${index + 1}</p>
-              <button class="btn btn-sm btn-outline-primary" data-session="${new Date(
-                Number(item.dataset.date)
-              ).setHours(
-                20,
-                0,
-                0,
-                0
-              )}" onclick="console.log('??')">20:00</button>
-            `
-          }
-        }
-      })
-      this.disableBooked(this.orders)
-    },
-
-    disableBooked(booked) {
-      booked.forEach(function (item) {
-        if (
-          document.querySelector(`[data-session='${item.user.address}']`) !=
-          undefined
-        ) {
-          document
-            .querySelector(`[data-session='${item.user.address}']`)
-            .classList.add('d-none')
-        }
-      })
-    },
-
-    renderOrders() {
-      this.orders.forEach(function (item) {
-      console.log(item)
-      let time = new Date(Number(item.user.address)).getHours()
-      let key = Object.keys(item.products)[0]
-      let product = item.products[key].product
-      let day = new Date(Number(item.user.address)).setHours(0, 0, 0, 0)
-      document.querySelector(`[data-date='${day}']`).innerHTML += `
-      <p class="booked" data-session="${item.user.address}" onclick="selectTempOrder()">${time}:00 ${item.user.name} ${product.title}</p>
-      `
-      })
-    },
     selectTempOrder(item) {
       console.log('!!')
-      // console.log(item)
+      console.log(item)
+    },
+    setToday() {
+      const date = new Date()
+      this.today.year = this.calendar.year = date.getFullYear()
+      this.today.month = this.calendar.month = date.getMonth() // 0~11
+      this.today.date = this.calendar.date = date.getDate()
+      this.today.day = this.calendar.day = date.getDay()
+    },
+    adjustYear(fix) {
+      this.calendar.year += fix
+    },
+    adjustMonth(fix) {
+      // this.calendar.month += fix 範圍
+      let month = this.calendar.month + fix
+      if (month > 11) {
+        this.adjustYear(1)
+        this.calendar.month = 0
+      } else if (month < 0) {
+        this.adjustYear(-1)
+        this.calendar.month = 11
+      } else {
+        this.calendar.month = month
+      }
+    },
+    booking(data) {
+      console.log(data)
     }
   },
   mounted() {
+    this.setToday()
     this.getBooked()
-    this.date = new Date()
-    this.renderCalendar()
   },
   computed: {
-    lastDate() {
-      return new Date(
-        this.date.getFullYear(),
-        this.date.getMonth() + 1,
-        0
-      ).getDate()
+    calendarFirstDay() {
+      const mDate = new Date(this.calendar.year, this.calendar.month, 1)
+      const date = new Date(
+        this.calendar.year,
+        this.calendar.month,
+        1 - mDate.getDay()
+      )
+      return {
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        date: date.getDate(),
+        day: date.getDay()
+      }
     },
-    nextDays() {
-      return 7 - this.lastDayIndex - 1
+    calendarMonth() {
+      const data = []
+      let date
+      for (let i = 0; i < 42; i++) {
+        date = new Date(
+          this.calendarFirstDay.year,
+          this.calendarFirstDay.month,
+          this.calendarFirstDay.date + i
+        )
+        data.push({
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          date: date.getDate(),
+          day: date.getDay()
+        })
+      }
+      return data
     },
-    prevLastDay() {
-      return new Date(
-        this.date.getFullYear(),
-        this.date.getMonth(),
-        0
-      ).getDate()
+    formatOrder() {
+      const newOrders = {}
+      for (const item of this.orders) {
+        const key = Object.keys(item.products)[0]
+        const product = item.products[key].product
+        const day = new Date(Number(item.user.address)).setHours(0, 0, 0, 0)
+        if (!newOrders[day]) {
+          newOrders[day] = []
+        }
+        newOrders[day].push({
+          product: product,
+          user: item.user,
+          time: new Date(Number(item.user.address)).getHours() + ':00'
+        })
+      }
+      console.log(newOrders)
+      return newOrders
     },
-    lastDayIndex() {
-      return new Date(
-        this.date.getFullYear(),
-        this.date.getMonth() + 1,
-        0
-      ).getDay()
-    },
-    CalendarMonth() {
-      const month = new Date(this.date).getMonth()
-      return months[month]
-    },
-    CalendarYear() {
-      return new Date(this.date).getFullYear()
+    bookedTime() {
+      // 已經被預定的時間
+      const time = []
+      for (const item of this.orders) {
+        time.push(item.user.address * 1)
+      }
+      return time
     }
   }
 }
@@ -451,5 +568,36 @@ export default {
 .prev-date,
 .next-date {
   opacity: 0.5;
+}
+
+.weekDay,
+.week {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+.weekDay > div {
+  flex: 1 1 0%;
+  line-height: 30px;
+}
+.week {
+  border-right: 1px solid #ddd;
+}
+.week > div {
+  position: relative;
+  flex: 1 1 0%;
+  min-height: 90px;
+  line-height: 1.5;
+  border-left: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.today {
+  color: #000000;
+  background-color: #ece4d8;
+}
+
+.other {
+  color: #bbb;
+  background-color: #ddd;
 }
 </style>
